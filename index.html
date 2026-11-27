@@ -163,8 +163,8 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
 const TYPES = {image:'Ảnh', video:'Video', article:'Bài viết', comic:'Truyện tranh', file:'File'};
-const PS = 12, cache = {}, COLS = 'id,user_id,type,title,body,tags,files,likes,comments,views,created_at,profiles(username,display_name,avatar_url)',
-  FEED = 'id,user_id,type,title,excerpt,tags,files,likes,comments,views,created_at,profiles(username,display_name,avatar_url)',   // bảng tin chỉ lấy đoạn trích, không tải cả bài dài
+const PS = 12, cache = {}, COLS = 'id,user_id,type,title,body,tags,files,likes,comments,views,created_at,profiles!user_id(username,display_name,avatar_url)',
+  FEED = 'id,user_id,type,title,excerpt,tags,files,likes,comments,views,created_at,profiles!user_id(username,display_name,avatar_url)',   // bảng tin chỉ lấy đoạn trích, không tải cả bài dài
   pub = p => sb.storage.from('media').getPublicUrl(p).data.publicUrl;
 let me = null, myP = null, isAdmin = false, scope = 'all', mode = 'home', author = '', sort = 'new', type = '', q = '', page = 0, busy = false, done = false, seq = 0, chatWith = null, ch = null;
 
@@ -237,7 +237,7 @@ async function load(reset) {
   if (reset) { seq++; busy = false; done = false; page = 0; $('#grid').innerHTML = ''; $('#empty').hidden = true; }
   if (mode === 'saved' || busy || done) return; busy = true; const my = seq;
   const qs = q.trim(), clean = t => t.replace(/[%,()*\\]/g, ''), col = {top: 'likes', views: 'views'}[sort] || 'created_at';
-  let r = sb.from('posts').select(scope === 'author' && qs ? FEED.replace('profiles(', 'profiles!inner(') : FEED)
+  let r = sb.from('posts').select(scope === 'author' && qs ? FEED.replace('profiles!user_id(', 'profiles!user_id!inner(') : FEED)
     .order(col, {ascending: false}).range(page * PS, page * PS + PS - 1);
   if (col !== 'created_at') r = r.order('created_at', {ascending: false});
   if (type) r = r.eq('type', type);
