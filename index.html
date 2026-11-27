@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MediaHub</title>
+<meta name="theme-color" content="#0F172A">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.js"></script>
+<style>
+:root{color-scheme:dark;--bg:#0F172A;--pn:#1E293B;--pn2:#273449;--tx:#F1F5F9;--mu:#94A3B8;--c:#06B6D4;--v:#8B5CF6;--m:#8B5CF6;--vt:#A78BFA;--bd:#334155;--inp:#0B1220;--r:12px;--mono:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+[data-theme=light]{color-scheme:light;--bg:#F8FAFC;--pn:#FFFFFF;--pn2:#F1F5F9;--tx:#0F172A;--mu:#64748B;--c:#0E7490;--v:#7C3AED;--m:#7C3AED;--vt:#6D28D9;--bd:#E2E8F0;--inp:#FFFFFF}
+[data-theme=light] .pri{color:#fff}
+*{box-sizing:border-box;margin:0}[hidden]{display:none!important}
+html{background:var(--bg)}
+body{font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--tx);min-height:100vh;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(70% 40% at 50% -5%,color-mix(in srgb,var(--v) 16%,transparent),transparent)}
+h1,h2,h3,h4{line-height:1.25}
+button,input,select,textarea{font:inherit;color:var(--tx);background:var(--inp);border:1px solid var(--bd);border-radius:8px;padding:9px 12px;min-width:0}
+button{cursor:pointer;transition:.15s}button:hover{border-color:var(--c)}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--c);box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 25%,transparent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--c)}
+.pri{background:var(--c);color:#0F172A;border:0;font-weight:600}.pri:hover{filter:brightness(1.1)}
+header{position:sticky;top:0;z-index:5;display:flex;gap:8px;align-items:center;padding:8px 14px;padding-top:calc(8px + env(safe-area-inset-top,0px));background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--bd)}
+.logo{font:700 21px var(--mono);letter-spacing:-.4px;cursor:pointer;background:linear-gradient(90deg,var(--c),var(--m));-webkit-background-clip:text;background-clip:text;color:transparent}
+.nav{display:flex;gap:2px;margin-right:auto;margin-left:14px}.nav a{padding:6px 12px;border-radius:6px;color:var(--tx);text-decoration:none;font-size:14px}.nav a:hover{color:var(--c)}
+@media(max-width:700px){.nav{display:none}.logo{margin-right:auto}}
+#bChat{position:relative}#badge{position:absolute;top:3px;right:3px;width:9px;height:9px;border-radius:50%;background:var(--m)}
+#bUser{display:flex;align-items:center;gap:6px;padding:4px 10px}#bUser span{max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.av{border-radius:50%;box-shadow:0 0 0 2px var(--bd);flex:none;vertical-align:middle;object-fit:cover}
+#hometop{max-width:1200px;margin:0 auto;padding:14px 14px 0}
+.hero{position:relative;overflow:hidden;border:1px solid var(--bd);border-radius:16px;padding:18px;background:linear-gradient(135deg,var(--pn),color-mix(in srgb,var(--v) 14%,var(--pn)))}
+.hrow{display:flex;gap:14px;align-items:center;justify-content:space-between}
+.hero h1{font:700 clamp(22px,4vw,30px)/1.2 var(--mono);letter-spacing:-.5px}.hero h1 span{color:var(--c)}
+.hero p{color:var(--mu);font-size:14px;margin-top:4px}
+#hero{display:flex;padding-left:12px}#hero .av{margin-left:-12px;box-shadow:0 0 0 3px var(--pn)}
+@media(max-width:560px){#hero .av{width:44px;height:44px}.hero p{display:none}}
+.sbar{position:relative;z-index:1;display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}.sbar #q{flex:1;min-width:180px}
+@media(max-width:560px){.sbar select{flex:1}}
+#pt{position:relative;z-index:1;margin-top:10px;align-items:center}#pt small{font-family:var(--mono)}
+#tabs{display:flex;gap:6px;overflow-x:auto;padding:12px 0 2px;scrollbar-width:none}
+.chip{white-space:nowrap;border-radius:99px;padding:4px 12px;text-decoration:none;color:var(--tx);border:1px solid var(--bd);background:var(--pn);font:13px var(--mono)}
+.chip.on{background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--c);border-color:var(--c)}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:22px;max-width:1200px;margin:0 auto;padding:12px 14px 40px}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}}
+.bar{display:flex;gap:8px;align-items:center;padding:0 0 10px}.bar select{padding:5px 10px}
+#wd{display:flex;flex-direction:column;gap:14px;align-self:start;position:sticky;top:64px}@media(max-width:900px){#wd{position:static}}
+.wg{background:var(--pn);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px}.wg h4{font:600 15px var(--mono);margin-bottom:8px}
+.li{display:flex;align-items:center;gap:8px;padding:5px 0;color:var(--tx);text-decoration:none}.li span{flex:1}.li b{color:var(--mu);font-size:13px}.li:hover span{color:var(--c)}
+#grid,.grid2{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+@media(max-width:480px){#grid,.grid2{grid-template-columns:1fr 1fr;gap:8px}}
+.card{background:var(--pn);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:.2s;content-visibility:auto;contain-intrinsic-size:auto 300px}
+.card:hover{border-color:color-mix(in srgb,var(--c) 55%,var(--bd));transform:translateY(-2px);box-shadow:0 10px 28px #0005}
+.card>img,.card>video,.ph{width:100%;aspect-ratio:16/10;object-fit:cover;background:var(--pn2);display:block}
+.ph{display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;font:600 13px var(--mono);color:var(--mu);word-break:break-word;background:linear-gradient(135deg,var(--pn2),var(--pn))}
+.ci{padding:10px 12px 12px;display:flex;flex-direction:column;gap:5px;flex:1}.ci h4{font-size:15px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ci p{color:var(--mu);font-size:13px;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.by{display:flex;align-items:center;gap:6px}.tg{font:600 12px var(--mono);color:var(--vt)}
+.meta{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--mu);margin-top:auto}
+small,.mu{color:var(--mu);font-size:13px}
+#empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:40px 0;color:var(--mu);text-align:center}
+#profile{border:1px solid var(--bd);border-radius:14px;background:var(--pn);overflow:hidden;margin-bottom:14px}
+.cover{height:90px;background:linear-gradient(120deg,var(--c),var(--v));opacity:.85}
+.pbody{display:flex;gap:16px;padding:0 16px 16px;margin-top:-40px;flex-wrap:wrap}.pbody>.av{width:96px;height:96px;border:3px solid var(--pn)}
+.pinfo{flex:1;min-width:220px;padding-top:44px}.stat2{display:flex;gap:16px;margin:8px 0;color:var(--mu);font-size:14px;flex-wrap:wrap}.stat2 b{color:var(--tx)}
+#post{background:var(--pn);border:1px solid var(--bd);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+#post h1{font-size:clamp(22px,4vw,32px)}#post img,#post video{width:100%;border-radius:10px;display:block}
+.byline{display:flex;gap:10px;align-items:center}.prose{font-size:17px;line-height:1.8}
+.authorbox{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--bd);border-radius:10px;background:var(--pn2)}.authorbox div{flex:1;min-width:0}
+.pages{display:flex;flex-direction:column;gap:6px}.body{white-space:pre-wrap;word-break:break-word}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row input{flex:1}
+.file{display:block;padding:12px;border:1px dashed var(--c);border-radius:10px;color:var(--c);word-break:break-all}
+.err{color:#F87171;font-size:13px;min-height:1em}progress{width:100%}
+.cm{padding:8px 0;border-bottom:1px solid var(--bd)}#lk.on,#bm.on{background:var(--m);border-color:var(--m);color:#fff}a.un{color:var(--c);text-decoration:none}
+footer{border-top:1px solid var(--bd);padding:18px 14px 90px;text-align:center;color:var(--mu);font-size:13px}
+.fab{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:8;width:44px;height:44px;padding:0;border-radius:50%;font:300 28px/1 var(--mono);background:var(--v);color:#fff;border:0;box-shadow:0 6px 20px #8B5CF655}.fab:hover{filter:brightness(1.1)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.modal{position:fixed;inset:0;background:#020617c0;display:none;z-index:9;align-items:center;justify-content:center}.modal.on{display:flex}
+.sheet{position:relative;background:var(--pn);border:1px solid var(--bd);width:min(560px,100%);max-height:100%;overflow:auto;border-radius:14px;padding:18px;padding-top:calc(18px + env(safe-area-inset-top,0px))}
+@media(max-width:600px){.sheet{height:100%;border-radius:0}}
+.x{position:absolute;top:calc(8px + env(safe-area-inset-top,0px));right:8px;padding:4px 10px}
+#mb{display:flex;flex-direction:column;gap:10px;padding-top:6px}
+#ts{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--pn2);color:var(--tx);border:1px solid var(--bd);box-shadow:0 8px 24px #0006;font-weight:500;padding:8px 16px;border-radius:99px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:80%}#ts.on{opacity:1}
+/* ===== Ứng dụng trò chuyện riêng ===== */
+#app{position:fixed;inset:0;z-index:12;display:flex;background:var(--bg)}
+#side{width:340px;border-right:1px solid var(--bd);display:flex;flex-direction:column;background:var(--pn);padding-top:env(safe-area-inset-top,0px)}
+.top{display:flex;align-items:center;gap:10px;padding:12px;border-bottom:1px solid var(--bd);font:600 15px var(--mono)}.top>b{flex:1;color:var(--tx)}
+#fs{margin:10px}#fl{overflow:auto;flex:1;padding:0 6px 12px}
+.sec{font:600 12px var(--mono);color:var(--mu);padding:10px 8px 4px}
+.u{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:10px}.u[data-c]{cursor:pointer}.u[data-c]:hover,.u.on{background:var(--pn2)}
+.nm{flex:1;min-width:0}.nm b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dot{width:9px;height:9px;border-radius:50%;background:#3a4668;display:inline-block;margin-right:6px}.dot.on{background:#22C55E}
+.cnt{background:var(--m);color:#fff;border-radius:99px;font-size:12px;padding:0 7px;min-width:20px;text-align:center}
+#conv{flex:1;display:flex;flex-direction:column;min-width:0;padding-top:env(safe-area-inset-top,0px)}
+#cempty{margin:auto;display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--mu);text-align:center;padding:20px}
+#cbox{flex:1;display:flex;flex-direction:column;min-height:0}
+#ms{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:6px}
+.m{max-width:78%;padding:7px 12px;border-radius:14px 14px 14px 4px;background:var(--pn2);border:1px solid var(--bd);align-self:flex-start;word-break:break-word}
+.m.me{align-self:flex-end;border:0;border-radius:14px 14px 4px 14px;background:linear-gradient(135deg,#0E7490,#7C3AED);color:#fff}
+.m time{display:block;font-size:11px;opacity:.65}.seen{align-self:flex-end;font-size:12px;color:var(--c)}
+#typ{height:20px;padding:0 14px;font-size:12px;color:var(--c)}
+.send{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px))}.send input{flex:1}
+#bk{display:none}
+@media(max-width:700px){#side{width:100%}#conv{display:none;width:100%}#app.show-conv #side{display:none}#app.show-conv #conv{display:flex}#bk{display:inline-block}}
+</style>
+</head>
+<body>
+<header>
+  <span class="logo" id="logo">MediaHub</span>
+  <nav class="nav"><a href="#" id="nHome">Trang chủ</a><a href="#" id="nSaved">Đã lưu</a></nav>
+  <button id="bChat" aria-label="Trò chuyện">Chat<i id="badge" hidden></i></button>
+  <button id="bTheme" aria-label="Đổi giao diện sáng hoặc tối">◐</button>
+  <button id="bUser">Đăng nhập</button>
+</header>
+<section id="hometop">
+  <div class="hero">
+    <div class="hrow"><div><h1>Kết nối <span>&amp;</span> chia sẻ</h1><p>Ảnh, video, truyện, file và bài viết. Tìm nhanh, kết bạn, trò chuyện trực tiếp.</p></div><div id="hero"></div></div>
+    <div class="sbar"><select id="sType" aria-label="Chuyên mục"></select><select id="sScope" aria-label="Tìm theo"><option value="all">Mọi nơi</option><option value="tag">Thẻ</option><option value="author">Tác giả</option></select><input id="q" type="search" placeholder="Nhập từ khóa (không cần gõ dấu)"></div>
+    <div class="row" id="pt"></div>
+  </div>
+  <nav id="tabs"></nav>
+</section>
+<div class="wrap">
+  <div class="col">
+    <div id="feed">
+      <div id="profile" hidden></div>
+      <div class="bar"><select id="sort" aria-label="Sắp xếp"><option value="new">Mới nhất</option><option value="top">Nhiều lượt thích</option><option value="views">Xem nhiều nhất</option></select></div>
+      <div id="grid"></div>
+      <div id="empty" hidden></div>
+      <div id="end" style="height:1px"></div>
+    </div>
+    <article id="post" hidden></article>
+  </div>
+  <aside id="wd"></aside>
+</div>
+<footer>MediaHub – nơi chia sẻ ảnh, video, truyện, file và bài viết. <a href="#" id="nTop" class="un">Lên đầu trang</a></footer>
+<button id="bUp" class="fab" aria-label="Đăng bài">+</button>
+<div class="modal" id="md"><div class="sheet"><button class="x" id="cx" aria-label="Đóng">✕</button><div id="mb"></div></div></div>
+<div id="app" hidden>
+  <aside id="side">
+    <div class="top"><b>Trò chuyện</b><button id="appX" aria-label="Đóng">✕</button></div>
+    <input id="fs" type="search" placeholder="Tìm tên người dùng để kết bạn">
+    <div id="fl"></div>
+  </aside>
+  <section id="conv">
+    <div id="cempty"><div id="ce"></div><p>Chọn một người bạn để bắt đầu trò chuyện</p></div>
+    <div id="cbox" hidden>
+      <div class="top"><button id="bk" aria-label="Quay lại">←</button><span id="cav"></span><div class="nm"><b id="cname" style="color:var(--tx)"></b><div id="cstat" class="mu"></div></div></div>
+      <div id="ms"></div><div id="typ"></div>
+      <div class="send"><input id="mi" placeholder="Nhập tin nhắn…" maxlength="2000"><button class="pri" id="sd">Gửi</button></div>
+    </div>
+  </section>
+</div>
+<div id="ts"></div>
+
+<script>
+// ===== CẤU HÌNH Supabase =====
+const SB_URL = 'https://yxzejzgolwqtsaaetgbe.supabase.co';   // chỉ gồm tên miền, không thêm /rest/v1/
+const SB_KEY = 'sb_publishable_u15P7VeNbMc_5LvKTEz_GQ_U1ZaR_mH';   // khóa publishable (công khai, an toàn nhờ RLS). KHÔNG dùng khóa secret/service_role.
+// =======================================================================
+const sb = supabase.createClient(SB_URL, SB_KEY);
+document.head.append(Object.assign(document.createElement('link'), {rel: 'preconnect', href: SB_URL}));
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
+const TYPES = {image:'Ảnh', video:'Video', article:'Bài viết', comic:'Truyện tranh', file:'File'};
+const PS = 12, cache = {}, COLS = 'id,user_id,type,title,body,tags,files,likes,comments,views,created_at,profiles(username,display_name,avatar_url)',
+  FEED = 'id,user_id,type,title,excerpt,tags,files,likes,comments,views,created_at,profiles(username,display_name,avatar_url)',   // bảng tin chỉ lấy đoạn trích, không tải cả bài dài
+  pub = p => sb.storage.from('media').getPublicUrl(p).data.publicUrl;
+let me = null, myP = null, isAdmin = false, scope = 'all', mode = 'home', author = '', sort = 'new', type = '', q = '', page = 0, busy = false, done = false, seq = 0, chatWith = null, ch = null;
+
+const open = h => { $('#mb').innerHTML = h; $('#md').classList.add('on'); };
+const close = () => { $('#md').classList.remove('on'); $('#mb').innerHTML = ''; };
+const toast = t => { const e = $('#ts'); e.textContent = t; e.classList.add('on'); setTimeout(() => e.classList.remove('on'), 2800); };
+const date = d => new Date(d).toLocaleDateString('vi-VN');
+const avUrl = {};   // username -> ảnh đại diện đã tải lên
+const av = (name, sz = 40) => {   // ảnh đại diện thật nếu có, nếu không thì avatar anime tự vẽ từ tên
+  if (avUrl[name]) return `<img class="av" src="${esc(avUrl[name])}" width="${sz}" height="${sz}" alt="" loading="lazy" decoding="async">`;
+  let h = 0; for (const c of name || '?') h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const hair = `hsl(${h % 360} 85% 60%)`, eye = `hsl(${(h >> 3) % 360} 90% 65%)`;
+  return `<svg class="av" width="${sz}" height="${sz}" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="32" fill="#0d1224"/>
+<path d="M10 40c-4-22 8-32 22-32s26 10 22 32c-3-10-8-16-22-16S13 30 10 40z" fill="${hair}"/><ellipse cx="32" cy="38" rx="17" ry="18" fill="#ffe3d0"/>
+<path d="M15 34c8-2 14-8 17-14 3 6 10 12 17 14-1-14-9-22-17-22S16 20 15 34z" fill="${hair}"/>
+<ellipse cx="25" cy="40" rx="4" ry="5.5" fill="${eye}"/><ellipse cx="39" cy="40" rx="4" ry="5.5" fill="${eye}"/>
+<circle cx="26.5" cy="38" r="1.6" fill="#fff"/><circle cx="40.5" cy="38" r="1.6" fill="#fff"/>
+<path d="M29 49q3 2 6 0" stroke="#c4566b" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+<ellipse cx="20" cy="46" rx="3" ry="1.6" fill="#ff8fab" opacity=".6"/><ellipse cx="44" cy="46" rx="3" ry="1.6" fill="#ff8fab" opacity=".6"/></svg>`; };
+$('#hero').innerHTML = ['mio', 'ren', 'sora'].map(n => av(n, 64)).join('');
+$('#empty').innerHTML = av('sora', 72) + '<p>Chưa có nội dung nào khớp. Hãy đăng bài đầu tiên bằng nút +.</p>';
+$('#ce').innerHTML = av('mio', 96);
+
+$('#cx').onclick = close;
+$('#md').onclick = e => { if (e.target.id === 'md') close(); };
+addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+// ---------- Giao diện sáng/tối ----------
+const applyTheme = t => document.documentElement.dataset.theme = t;
+try { applyTheme(localStorage.getItem('theme') || 'dark'); } catch { applyTheme('dark'); }
+$('#bTheme').onclick = () => { const t = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'; applyTheme(t); try { localStorage.setItem('theme', t); } catch {} };
+
+// ---------- Hiển thị trang ----------
+const dn = u => u?.display_name || u?.username || '?';
+const reg = u => { if (u?.username) { if (u.avatar_url) avUrl[u.username] = u.avatar_url; else delete avUrl[u.username]; } };
+let lastY = 0;
+function showFeed() { $('#post').hidden = true; $('#feed').hidden = false; $('#hometop').hidden = mode !== 'home'; $('#profile').hidden = mode === 'home'; document.title = 'MediaHub'; }
+function showPost() { if ($('#post').hidden) lastY = scrollY; $('#feed').hidden = true; $('#hometop').hidden = true; $('#post').hidden = false; scrollTo(0, 0); }
+function back() { history.replaceState(null, '', location.pathname + location.search); showFeed(); scrollTo(0, lastY); }
+const syncTabs = () => document.querySelectorAll('#tabs .chip').forEach(c => c.classList.toggle('on', c.dataset.k === type));
+const go = () => { if (mode === 'saved') mode = 'home'; showFeed(); load(true); };
+function navHome() { mode = 'home'; author = ''; q = ''; type = ''; scope = 'all'; $('#q').value = ''; $('#sType').value = ''; $('#sScope').value = 'all'; syncTabs();
+  history.replaceState(null, '', location.pathname + location.search); showFeed(); load(true); scrollTo(0, 0); }
+function searchTag(t) { mode = 'home'; author = ''; scope = 'tag'; type = ''; q = t; $('#sScope').value = 'tag'; $('#q').value = t; $('#sType').value = ''; syncTabs(); showFeed(); load(true); scrollTo(0, 0); }
+
+// ---------- Thanh tìm kiếm phân loại ----------
+const CATS = [['', 'Tất cả chuyên mục'], ...Object.entries(TYPES)];
+$('#sType').innerHTML = CATS.map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+$('#tabs').innerHTML = CATS.map(([k, v]) => `<a href="#" class="chip${k ? '' : ' on'}" data-k="${k}">${k ? v : 'Tất cả'}</a>`).join('');
+function setType(k) { type = k; $('#sType').value = k; syncTabs(); go(); }
+$('#tabs').onclick = e => { const a = e.target.closest('[data-k]'); if (a) { e.preventDefault(); setType(a.dataset.k); } };
+$('#sType').onchange = e => setType(e.target.value);
+$('#sScope').onchange = e => { scope = e.target.value; go(); };
+$('#sort').onchange = e => { sort = e.target.value; load(true); };
+let st; $('#q').oninput = () => { clearTimeout(st); st = setTimeout(() => { q = $('#q').value; go(); }, 300); };
+$('#logo').onclick = e => { e.preventDefault(); navHome(); };
+$('#nHome').onclick = e => { e.preventDefault(); navHome(); };
+$('#nSaved').onclick = e => { e.preventDefault(); savedUI(); };
+$('#nTop').onclick = e => { e.preventDefault(); scrollTo(0, 0); };
+
+// ---------- Bảng tin ----------
+const thumb = p => { const f = p.files?.[0], m = f?.mime || '';
+  return m.startsWith('image/') ? `<img loading="lazy" decoding="async" src="${esc(f.t || f.url)}" alt="">`
+    : m.startsWith('video/') ? `<video preload="metadata" muted playsinline src="${esc(f.url)}#t=0.5"></video>`
+    : `<div class="ph">${f ? 'FILE<br>' + esc(f.name) : TYPES[p.type]}</div>`; };
+const card = p => `<article class="card" data-id="${p.id}">${thumb(p)}<div class="ci"><small class="tg">${TYPES[p.type]}</small><h4>${esc(p.title)}</h4>${p.excerpt ? `<p>${esc(p.excerpt)}</p>` : ''}
+<div class="by">${av(p.profiles?.username, 22)}<small>${esc(dn(p.profiles))}</small></div>
+<div class="meta"><span>${date(p.created_at)}</span><span>♥ ${p.likes}</span><span>${p.comments} bình luận</span><span>${p.views} xem</span></div></div></article>`;
+
+async function load(reset) {
+  if (reset) { seq++; busy = false; done = false; page = 0; $('#grid').innerHTML = ''; $('#empty').hidden = true; }
+  if (mode === 'saved' || busy || done) return; busy = true; const my = seq;
+  const qs = q.trim(), clean = t => t.replace(/[%,()*\\]/g, ''), col = {top: 'likes', views: 'views'}[sort] || 'created_at';
+  let r = sb.from('posts').select(scope === 'author' && qs ? FEED.replace('profiles(', 'profiles!inner(') : FEED)
+    .order(col, {ascending: false}).range(page * PS, page * PS + PS - 1);
+  if (col !== 'created_at') r = r.order('created_at', {ascending: false});
+  if (type) r = r.eq('type', type);
+  if (author) r = r.eq('user_id', author);
+  if (scope === 'all') norm(q).split(/\s+/).filter(Boolean).forEach(w => r = r.ilike('kw', '%' + clean(w) + '%'));
+  else if (scope === 'tag' && qs) r = r.ilike('tags', '%' + clean(qs.replace(/^#/, '')) + '%');
+  else if (scope === 'author' && qs) r = r.ilike('profiles.username', '%' + clean(qs.replace(/^@/, '').toLowerCase()) + '%');
+  const {data, error} = await r; if (my !== seq) return; busy = false;
+  if (error) return toast(error.message);
+  data.forEach(p => { cache[p.id] = p; reg(p.profiles); });
+  $('#grid').insertAdjacentHTML('beforeend', data.map(card).join(''));
+  done = data.length < PS; page++;
+  $('#empty').hidden = $('#grid').children.length > 0;
+}
+new IntersectionObserver(e => e[0].isIntersecting && load(), {rootMargin: '600px'}).observe($('#end'));
+document.addEventListener('click', e => { const c = e.target.closest('.card[data-id]'); if (c) view(c.dataset.id); });
+
+// ---------- Thanh bên: chuyên mục, thẻ phổ biến, tác giả nổi bật ----------
+function sideClick(e) { const a = e.target.closest('[data-k],[data-t],[data-u]'); if (!a || a.closest('#tabs')) return; e.preventDefault(); const d = a.dataset;
+  if (d.k !== undefined) { mode = 'home'; author = ''; setType(d.k); } else if (d.t) searchTag(d.t); else if (d.u) profileUI(d.u); }
+$('#wd').onclick = $('#pt').onclick = sideClick;
+async function widgets() {
+  const {data} = await sb.rpc('blog_stats'); if (!data) return;
+  (data.authors || []).forEach(reg);
+  const tags = (data.tags || []).map(t => `<a href="#" class="chip" data-t="${esc(t.tag)}">#${esc(t.tag)}</a>`).join('');
+  $('#pt').innerHTML = tags ? '<small>Thẻ nổi bật:</small>' + tags.split('</a>').slice(0, 8).join('</a>') + '</a>' : '';
+  $('#wd').innerHTML = `<div class="wg"><h4>Chuyên mục</h4>${(data.types || []).map(t => `<a href="#" class="li" data-k="${t.type}"><span>${TYPES[t.type] || t.type}</span><b>${t.count}</b></a>`).join('')}</div>
+<div class="wg"><h4>Thẻ phổ biến</h4><div class="row">${tags}</div></div>
+<div class="wg"><h4>Tác giả nổi bật</h4>${(data.authors || []).map(a => `<a href="#" class="li" data-u="${esc(a.username)}">${av(a.username, 28)}<span>${esc(dn(a))}</span><b>${a.count} bài</b></a>`).join('')}</div>`;
+}
+
+// ---------- Bài viết (trang đọc), thích, lưu, bình luận, báo cáo ----------
+const fh = f => f.mime.startsWith('image/') ? `<img loading="lazy" decoding="async" src="${esc(f.url)}" alt="">`
+  : f.mime.startsWith('video/') ? `<video controls preload="metadata" playsinline src="${esc(f.url)}"></video>`
+  : `<a class="file" href="${esc(f.url)}" target="_blank" rel="noopener">Tải về: ${esc(f.name)} (${(f.size / 1048576).toFixed(1)} MB)</a>`;
+
+async function comments(id, p) {
+  const {data} = await sb.from('comments').select('id,user_id,body,created_at,profiles(username,display_name,avatar_url)').eq('post_id', id).order('created_at').limit(100);
+  const box = $('#cl'); if (!box) return; (data || []).forEach(c => reg(c.profiles));
+  box.innerHTML = (data || []).map(c => `<div class="cm"><div class="by">${av(c.profiles?.username, 24)}<b>${esc(dn(c.profiles))}</b><small>${date(c.created_at)}</small>${c.user_id === me?.id || isAdmin ? `<a href="#" class="un" data-dc="${c.id}">Xóa</a>` : ''}</div><div class="body">${esc(c.body)}</div></div>`).join('') || '<p class="mu">Chưa có bình luận.</p>';
+  box.onclick = async e => { const a = e.target.closest('[data-dc]'); if (!a) return; e.preventDefault();
+    const {error} = await sb.from('comments').delete().eq('id', a.dataset.dc); if (error) return toast(error.message);
+    p.comments--; $('#cc').textContent = p.comments; comments(id, p); };
+}
+
+async function view(id) {
+  let p = cache[id];
+  if (!p || p.body === undefined) { const {data} = await sb.from('posts').select(COLS).eq('id', id).maybeSingle();
+    if (!data) return toast('Bài viết không tồn tại hoặc đã bị xóa'); p = cache[id] = data; }
+  reg(p.profiles); showPost(); history.replaceState(null, '', '#p=' + id); document.title = p.title + ' – MediaHub';
+  const f = p.files || [], mine = me?.id === p.user_id, u = p.profiles || {}, mins = Math.max(1, Math.round((p.body || '').split(/\s+/).length / 200));
+  const media = `<div class="pages">${f.map(fh).join('')}</div>`, text = p.body ? `<div class="body prose">${esc(p.body)}</div>` : '';
+  $('#post').innerHTML = `<div><button id="pb2" class="chip">← Quay lại</button></div><small class="tg">${TYPES[p.type]}</small><h1>${esc(p.title)}</h1>
+    <div class="byline">${av(u.username, 44)}<div><a href="#" class="un" id="au2">${esc(dn(u))}</a><br><small>${date(p.created_at)} – ${mins} phút đọc – ${p.views} lượt xem</small></div></div>
+    ${p.type === 'article' ? text + media : media + text}
+    <div class="row">${(p.tags || '').split(' ').filter(Boolean).map(t => `<a href="#" class="chip" data-t="${esc(t)}">#${esc(t)}</a>`).join('')}</div>
+    <div class="row"><button id="lk">♥ <span id="lc">${p.likes}</span></button><button id="bm">Lưu</button><button id="sh">Chia sẻ</button>
+      ${!mine ? '<button id="fb">Kết bạn</button><button id="rp">Báo cáo</button>' : ''}${mine || isAdmin ? '<button id="del">Xóa bài</button>' : ''}</div>
+    <div class="authorbox">${av(u.username, 56)}<div><b>${esc(dn(u))}</b><br><small>${esc(u.bio || 'Thành viên MediaHub')}</small></div><button id="vp">Xem hồ sơ</button></div>
+    <h3>Bình luận (<span id="cc">${p.comments}</span>)</h3><div id="cl"></div>
+    <div class="row"><input id="cin" placeholder="Viết bình luận" maxlength="1000"><button class="pri" id="cs">Gửi</button></div>
+    <h3>Bài viết liên quan</h3><div id="rel" class="grid2"></div>`;
+  $('#pb2').onclick = back;
+  $('#au2').onclick = e => { e.preventDefault(); profileUI(u.username); }; $('#vp').onclick = () => profileUI(u.username);
+  document.querySelectorAll('#post [data-t]').forEach(a => a.onclick = e => { e.preventDefault(); searchTag(a.dataset.t); });
+  $('#sh').onclick = async () => { const url = location.origin + location.pathname + '#p=' + id;
+    if (navigator.share) { try { await navigator.share({title: p.title, url}); return; } catch {} }
+    try { await navigator.clipboard.writeText(url); toast('Đã sao chép liên kết'); } catch { prompt('Sao chép liên kết:', url); } };
+  $('#lk').onclick = async () => { if (!me) return authUI(); const on = $('#lk').classList.contains('on');
+    const {error} = on ? await sb.from('likes').delete().eq('post_id', id).eq('user_id', me.id) : await sb.from('likes').insert({post_id: id, user_id: me.id});
+    if (error) return toast(error.message); $('#lk').classList.toggle('on', !on); p.likes += on ? -1 : 1; $('#lc').textContent = p.likes; };
+  $('#bm').onclick = async () => { if (!me) return authUI(); const on = $('#bm').classList.contains('on');
+    const {error} = on ? await sb.from('bookmarks').delete().eq('post_id', id).eq('user_id', me.id) : await sb.from('bookmarks').insert({post_id: id, user_id: me.id});
+    if (error) return toast(error.message); $('#bm').classList.toggle('on', !on); $('#bm').textContent = on ? 'Lưu' : 'Đã lưu'; };
+  const send = async () => { if (!me) return authUI(); const body = $('#cin').value.trim(); if (!body) return;
+    const {error} = await sb.from('comments').insert({post_id: id, user_id: me.id, body}); if (error) return toast(error.message);
+    $('#cin').value = ''; p.comments++; $('#cc').textContent = p.comments; comments(id, p); };
+  $('#cs').onclick = send; $('#cin').onkeydown = e => e.key === 'Enter' && send();
+  if ($('#fb')) $('#fb').onclick = () => addFriend(p.user_id);
+  if ($('#rp')) $('#rp').onclick = async () => { if (!me) return authUI();
+    const reason = prompt('Lý do báo cáo (spam, nội dung xấu, vi phạm bản quyền...)'); if (!reason) return;
+    const {error} = await sb.from('reports').insert({post_id: id, user_id: me.id, reason: reason.slice(0, 300)});
+    toast(error ? (error.code === '23505' ? 'Bạn đã báo cáo bài này' : error.message) : 'Đã gửi báo cáo'); };
+  if ($('#del')) $('#del').onclick = async () => { if (!confirm('Xóa bài này?')) return;
+    const {error} = await sb.from('posts').delete().eq('id', id); if (error) return toast(error.message);
+    await sb.storage.from('media').remove(f.flatMap(x => [x.url, x.t]).filter(Boolean).map(x => decodeURIComponent(x.split('/media/')[1])));
+    back(); load(true); widgets(); };
+  comments(id, p);
+  try { if (!sessionStorage.getItem('v' + id)) { sessionStorage.setItem('v' + id, 1); sb.rpc('add_view', {pid: id}); } } catch {}
+  const tag = (p.tags || '').split(' ')[0]; let rq = sb.from('posts').select(FEED).neq('id', id).limit(4);
+  rq = tag ? rq.ilike('tags', '%' + tag.replace(/[%,()*\\]/g, '') + '%') : rq.eq('type', p.type);
+  rq.order('likes', {ascending: false}).then(({data}) => { const b = $('#rel'); if (!b) return;
+    (data || []).forEach(x => { cache[x.id] = x; reg(x.profiles); }); b.innerHTML = (data || []).map(card).join('') || '<p class="mu">Chưa có bài liên quan.</p>'; });
+  if (me) { const [l, b] = await Promise.all([sb.from('likes').select('post_id').eq('post_id', id).eq('user_id', me.id).maybeSingle(),
+      sb.from('bookmarks').select('post_id').eq('post_id', id).eq('user_id', me.id).maybeSingle()]);
+    $('#lk')?.classList.toggle('on', !!l.data); const bb = $('#bm'); if (bb) { bb.classList.toggle('on', !!b.data); bb.textContent = b.data ? 'Đã lưu' : 'Lưu'; } }
+}
+
+// ---------- Bài viết đã lưu ----------
+async function savedUI() {
+  if (!me) return authUI();
+  mode = 'saved'; author = ''; seq++; busy = false; done = true; $('#grid').innerHTML = ''; $('#empty').hidden = true;
+  $('#profile').innerHTML = '<div style="padding:14px 16px"><h2>Bài viết đã lưu</h2><small>Những bài bạn đã bấm Lưu.</small></div>'; showFeed(); scrollTo(0, 0);
+  const {data, error} = await sb.from('bookmarks').select('posts(' + FEED + ')').eq('user_id', me.id).order('created_at', {ascending: false}).limit(60);
+  if (mode !== 'saved') return; if (error) return toast(error.message);
+  const list = (data || []).map(x => x.posts).filter(Boolean); list.forEach(p => { cache[p.id] = p; reg(p.profiles); });
+  $('#grid').innerHTML = list.map(card).join(''); $('#empty').hidden = list.length > 0;
+}
+
+// ---------- Trang cá nhân + avatar ----------
+async function profileUI(username) {
+  const {data: u} = await sb.from('profiles').select('id,username,display_name,bio,avatar_url,created_at').eq('username', username).maybeSingle();
+  if (!u) return toast('Không tìm thấy người dùng');
+  reg(u); mode = 'profile'; author = u.id; q = ''; $('#q').value = ''; type = ''; scope = 'all'; $('#profile').innerHTML = ''; showFeed(); scrollTo(0, 0);
+  history.replaceState(null, '', '#u=' + u.username); load(true);
+  const stt = (await sb.rpc('profile_stats', {uid: u.id})).data || {}, mine = me?.id === u.id;
+  if (author !== u.id) return;
+  $('#profile').innerHTML = `<div class="cover"></div><div class="pbody">${av(u.username, 96)}<div class="pinfo"><h2>${esc(dn(u))}</h2><small>@${esc(u.username)} – tham gia ${date(u.created_at)}</small>
+    <p class="body">${esc(u.bio || 'Chưa có giới thiệu.')}</p>
+    <div class="stat2"><span><b>${stt.posts ?? 0}</b> bài đăng</span><span><b>${stt.likes ?? 0}</b> lượt thích</span><span><b>${stt.friends ?? 0}</b> bạn bè</span></div>
+    <div class="row">${mine ? '<button id="pe" class="pri">Chỉnh sửa hồ sơ</button>' : '<button id="pf" class="pri">Kết bạn</button><button id="pm">Nhắn tin</button>'}<button id="pk">Quay lại trang chủ</button></div></div></div>`;
+  $('#pk').onclick = navHome;
+  if ($('#pe')) $('#pe').onclick = editProfile;
+  if ($('#pf')) $('#pf').onclick = () => addFriend(u.id);
+  if ($('#pm')) $('#pm').onclick = () => { if (!me) return authUI(); if (!S.ok.includes(u.id)) return toast('Hãy kết bạn trước khi nhắn tin'); names[u.id] = u.username; chatUI(); openChat(u.id); };
+}
+function editProfile() {
+  if (!myP) return toast('Hãy đăng nhập lại để chỉnh sửa hồ sơ');
+  open(`<h3>Chỉnh sửa hồ sơ</h3><div class="row" style="align-items:center">${av(myP.username, 64)}<input id="pa" type="file" accept="image/jpeg,image/png,image/webp"></div>
+    <input id="pn" placeholder="Tên hiển thị" maxlength="40" value="${esc(myP.display_name || '')}">
+    <textarea id="pb" rows="4" maxlength="300" placeholder="Giới thiệu bản thân">${esc(myP.bio || '')}</textarea>
+    <p class="err" id="err"></p><button class="pri" id="go">Lưu</button>`);
+  $('#go').onclick = async () => { $('#go').disabled = true;
+    try { const patch = {display_name: $('#pn').value.trim().slice(0, 40), bio: $('#pb').value.trim().slice(0, 300)}, f = $('#pa').files[0];
+      if (f) { const t = await shrink(f, 256, .85, true), path = `${me.id}/avatar-${Date.now()}.webp`;
+        const {error} = await sb.storage.from('media').upload(path, t, {contentType: t.type, cacheControl: '31536000'}); if (error) throw error;
+        patch.avatar_url = pub(path); if (myP.avatar_url) sb.storage.from('media').remove([decodeURIComponent(myP.avatar_url.split('/media/')[1])]); }
+      const {error} = await sb.from('profiles').update(patch).eq('id', me.id); if (error) throw error;
+      Object.assign(myP, patch); reg(myP); navUser(); close(); toast('Đã lưu hồ sơ'); profileUI(myP.username);
+    } catch (e) { $('#err').textContent = e.message; $('#go').disabled = false; } };
+}
+function navUser() { const n = myP?.username || me?.user_metadata?.username;
+  $('#bUser').innerHTML = me ? `${av(n || '?', 24)}<span>${esc(myP?.display_name || n || 'Tài khoản')}</span>` : 'Đăng nhập'; }
+function menuUI() {
+  if (!myP) return toast('Đang tải hồ sơ, hãy thử lại sau giây lát');
+  open(`<div class="by">${av(myP.username, 48)}<h3>${esc(dn(myP))}</h3></div><small>@${esc(myP.username)}</small>
+    <button id="m1">Trang cá nhân</button><button id="m2">Chỉnh sửa hồ sơ</button><button id="m3">Bài viết đã lưu</button><button id="m4">Đăng xuất</button>`);
+  $('#m1').onclick = () => { close(); profileUI(myP.username); }; $('#m2').onclick = editProfile;
+  $('#m3').onclick = () => { close(); savedUI(); }; $('#m4').onclick = () => { close(); sb.auth.signOut(); };
+}
+
+// ---------- Tài khoản ----------
+sb.auth.onAuthStateChange((_, s) => { me = s?.user || null; if (!me) myP = null; navUser(); setTimeout(subscribe); });
+$('#bUser').onclick = () => me ? menuUI() : authUI();
+
+function authUI(mode = 'in') {
+  const up = mode === 'up';
+  open(`<h3>${up ? 'Tạo tài khoản' : 'Đăng nhập'}</h3>
+    ${up ? '<input id="au" placeholder="Tên người dùng (a-z, 0-9, _)" maxlength="20" autocapitalize="none">' : ''}
+    <input id="ae" type="email" placeholder="Email" autocomplete="email">
+    <input id="ap" type="password" placeholder="Mật khẩu (ít nhất 6 ký tự)" autocomplete="${up ? 'new' : 'current'}-password">
+    <p class="err" id="err"></p><button class="pri" id="go">${up ? 'Tạo tài khoản' : 'Đăng nhập'}</button>
+    <a href="#" id="sw">${up ? 'Đã có tài khoản? Đăng nhập' : 'Chưa có tài khoản? Tạo mới'}</a>`);
+  $('#sw').onclick = e => { e.preventDefault(); authUI(up ? 'in' : 'up'); };
+  $('#go').onclick = async () => {
+    const email = $('#ae').value.trim(), password = $('#ap').value;
+    const r = up ? await sb.auth.signUp({email, password, options: {data: {username: $('#au').value.trim().toLowerCase()}}})
+                 : await sb.auth.signInWithPassword({email, password});
+    if (r.error) return $('#err').textContent = r.error.message;
+    close(); toast(up && !r.data.session ? 'Kiểm tra email để xác nhận tài khoản' : 'Xin chào!'); };
+}
+
+// ---------- Đăng bài ----------
+async function shrink(f, max = 2000, ql = .85, force = false) {   // nén ảnh WebP; force = tạo ảnh thu nhỏ cho bảng tin
+  if (!/^image\/(jpe?g|png|webp)$/.test(f.type) || (!force && f.size < 5e5)) return f;
+  const b = await createImageBitmap(f), s = Math.min(1, max / Math.max(b.width, b.height)), c = document.createElement('canvas');
+  c.width = Math.round(b.width * s); c.height = Math.round(b.height * s);
+  c.getContext('2d').drawImage(b, 0, 0, c.width, c.height);
+  const o = await new Promise(r => c.toBlob(r, 'image/webp', ql));
+  return o && (force || o.size < f.size) ? new File([o], f.name.replace(/\.\w+$/, '') + '.webp', {type: 'image/webp'}) : f;
+}
+function upUI() {
+  if (!me) return authUI();
+  open(`<h3>Đăng bài mới</h3>
+    <select id="ut">${Object.entries(TYPES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select>
+    <input id="ui" placeholder="Tiêu đề" maxlength="120">
+    <textarea id="ub" rows="5" placeholder="Nội dung hoặc mô tả"></textarea>
+    <input id="ug" placeholder="Từ khóa, cách nhau bằng dấu cách (ví dụ: du lịch đà nẵng)">
+    <input id="uf" type="file" multiple>
+    <small id="hint" class="mu"></small><progress id="pg" hidden></progress><p class="err" id="err"></p>
+    <button class="pri" id="go">Đăng</button>`);
+  const acc = {image: 'image/*', video: 'video/*', comic: 'image/*', article: 'image/*,video/*', file: ''};
+  const sync = () => { const t = $('#ut').value; $('#uf').accept = acc[t];
+    $('#hint').textContent = t === 'comic' ? 'Chọn tất cả trang; trang được xếp theo tên file (1, 2, 3...). Tối đa 50 MB mỗi file.' : 'Tối đa 50 MB mỗi file.'; };
+  $('#ut').onchange = sync; sync();
+  const fail = m => { $('#err').textContent = m; $('#go').disabled = false; $('#pg').hidden = true; };
+  $('#go').onclick = async () => {
+    const t = $('#ut').value, title = $('#ui').value.trim(), body = $('#ub').value.trim();
+    const tags = $('#ug').value.split(/[\s,#]+/).filter(Boolean).slice(0, 15).join(' ');
+    const fs = [...$('#uf').files]; if (t === 'comic') fs.sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
+    if (!title) return fail('Hãy nhập tiêu đề.');
+    if (t !== 'article' && !fs.length) return fail('Hãy chọn ít nhất một file.');
+    if (fs.some(f => f.size > 52428800)) return fail('Có file lớn hơn 50 MB.');
+    $('#go').disabled = true; $('#err').textContent = ''; const files = [], pg = $('#pg'); pg.hidden = false; pg.max = fs.length;
+    try {
+      for (let i = 0; i < fs.length; i++) {
+        pg.value = i; $('#go').textContent = `Đang tải ${i + 1}/${fs.length}...`;
+        const f = await shrink(fs[i]), path = `${me.id}/${Date.now()}-${i}-${f.name.replace(/[^\w.\-]/g, '_')}`;
+        const put = (k, b) => sb.storage.from('media').upload(k, b, {contentType: b.type || 'application/octet-stream', cacheControl: '31536000'});
+        let {error} = await put(path, f); if (error) throw error;
+        const o = {url: pub(path), name: fs[i].name, size: f.size, mime: f.type || 'application/octet-stream'};
+        if (o.mime.startsWith('image/')) { const t = await shrink(f, 480, .75, true);
+          if (t !== f && !(await put(path + '.t.webp', t)).error) o.t = pub(path + '.t.webp'); }
+        files.push(o);
+      }
+      const {error} = await sb.from('posts').insert({user_id: me.id, type: t, title, body, tags, files, kw: norm(`${title} ${body} ${tags}`)});
+      if (error) throw error;
+      close(); toast('Đã đăng'); mode = 'home'; author = ''; showFeed(); load(true); widgets();
+    } catch (e) { fail(e.message || 'Tải lên thất bại.'); $('#go').textContent = 'Đăng'; }
+  };
+}
+$('#bUp').onclick = upUI;
+
+// ---------- Bạn bè, trò chuyện riêng, trạng thái online, đã xem ----------
+let S = {req: [], sent: [], ok: [], unread: {}}, names = {}, online = new Set(), msgs = [], pres = null, tT = 0, tHide;
+const hm = d => new Date(d || Date.now()).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
+async function addFriend(id) {
+  if (!me) return authUI();
+  const {error} = await sb.from('friendships').insert({a: me.id, b: id});
+  toast(error ? (error.code === '23505' ? 'Đã có lời mời hoặc đã là bạn bè' : error.message) : 'Đã gửi lời mời kết bạn');
+}
+const refreshBadge = () => $('#badge').hidden = !(S.req.length || Object.values(S.unread).some(Boolean));
+async function loadFriends() {
+  if (!me) return;
+  const [f, u] = await Promise.all([sb.from('friendships').select('*').or(`a.eq.${me.id},b.eq.${me.id}`),
+    sb.from('messages').select('sender').eq('receiver', me.id).is('read_at', null).limit(500)]);
+  const data = f.data || [], ids = [...new Set(data.flatMap(x => [x.a, x.b]))].filter(i => i !== me.id);
+  if (ids.length) ((await sb.from('profiles').select('id,username,avatar_url').in('id', ids)).data || []).forEach(p => { names[p.id] = p.username; reg(p); });
+  S.req = data.filter(x => x.status === 'pending' && x.b === me.id);
+  S.sent = data.filter(x => x.status === 'pending' && x.a === me.id);
+  S.ok = data.filter(x => x.status === 'accepted').map(x => x.a === me.id ? x.b : x.a);
+  S.unread = {}; (u.data || []).forEach(m => S.unread[m.sender] = (S.unread[m.sender] || 0) + 1);
+  renderList(); refreshBadge();
+}
+function renderList() {
+  if ($('#fs').value.trim()) return;
+  const ok = [...S.ok].sort((x, y) => online.has(y) - online.has(x)), mu = t => `<p class="mu" style="padding:8px">${t}</p>`;
+  $('#fl').innerHTML = (S.req.length ? '<div class="sec">Lời mời kết bạn</div>' : '')
+    + S.req.map(f => `<div class="u">${av(names[f.a], 40)}<div class="nm"><b>${esc(names[f.a])}</b></div><button class="pri" data-ac="${f.id}">Chấp nhận</button><button data-rj="${f.id}">Từ chối</button></div>`).join('')
+    + '<div class="sec">Bạn bè</div>'
+    + (ok.map(id => `<div class="u${id === chatWith ? ' on' : ''}" data-c="${id}">${av(names[id], 40)}<div class="nm"><b>${esc(names[id])}</b><small><i class="dot${online.has(id) ? ' on' : ''}"></i>${online.has(id) ? 'Đang online' : 'Offline'}</small></div>${S.unread[id] ? `<span class="cnt">${S.unread[id]}</span>` : ''}</div>`).join('') || mu('Chưa có bạn bè. Gõ tên vào ô tìm kiếm để kết bạn.'))
+    + (S.sent.length ? '<div class="sec">Đã gửi lời mời</div>' + S.sent.map(f => `<div class="u">${av(names[f.b], 40)}<div class="nm"><b>${esc(names[f.b])}</b><small>Đang chờ chấp nhận</small></div></div>`).join('') : '');
+}
+let ft; $('#fs').oninput = () => { clearTimeout(ft); ft = setTimeout(findUsers, 300); };
+async function findUsers() {
+  const v = $('#fs').value.trim().toLowerCase().replace(/[%,()*\\]/g, ''); if (!v) return renderList();
+  const {data} = await sb.from('profiles').select('id,username,avatar_url').ilike('username', '%' + v + '%').neq('id', me.id).limit(10);
+  (data || []).forEach(reg);
+  $('#fl').innerHTML = '<div class="sec">Kết quả</div>' + ((data || []).map(u => `<div class="u">${av(u.username, 40)}<div class="nm"><b>${esc(u.username)}</b></div><button data-add="${u.id}">Kết bạn</button></div>`).join('') || '<p class="mu" style="padding:8px">Không tìm thấy ai.</p>');
+}
+$('#fl').onclick = async e => {
+  const el = e.target.closest('[data-add],[data-ac],[data-rj],[data-c]'); if (!el) return; const d = el.dataset;
+  if (d.c) return openChat(d.c);
+  if (d.add) await addFriend(d.add);
+  if (d.ac) await sb.from('friendships').update({status: 'accepted'}).eq('id', d.ac);
+  if (d.rj) await sb.from('friendships').delete().eq('id', d.rj);
+  $('#fs').value = ''; loadFriends(); };
+const chatUI = () => { if (!me) return authUI(); $('#app').hidden = false; $('#app').classList.remove('show-conv'); loadFriends(); };
+$('#bChat').onclick = chatUI;
+$('#appX').onclick = () => { $('#app').hidden = true; chatWith = null; $('#cbox').hidden = true; $('#cempty').hidden = false; };
+$('#bk').onclick = () => { $('#app').classList.remove('show-conv'); chatWith = null; renderList(); };
+
+const statLine = () => { if (chatWith) $('#cstat').innerHTML = `<i class="dot${online.has(chatWith) ? ' on' : ''}"></i>${online.has(chatWith) ? 'Đang online' : 'Offline'}`; };
+function renderMsgs() {
+  const last = msgs.map(m => m.sender).lastIndexOf(me.id);
+  $('#ms').innerHTML = msgs.map((m, i) => `<div class="m${m.sender === me.id ? ' me' : ''}">${esc(m.body)}<time>${hm(m.created_at)}</time></div>`
+    + (i === last ? `<div class="seen">${m.read_at ? 'Đã xem' : 'Đã gửi'}</div>` : '')).join('');
+  $('#ms').scrollTop = $('#ms').scrollHeight;
+}
+async function markRead(uid) {
+  if (S.unread[uid]) { delete S.unread[uid]; renderList(); refreshBadge(); }
+  await sb.from('messages').update({read_at: new Date().toISOString()}).eq('receiver', me.id).eq('sender', uid).is('read_at', null);
+}
+async function openChat(uid) {
+  chatWith = uid; msgs = [];
+  $('#app').classList.add('show-conv'); $('#cempty').hidden = true; $('#cbox').hidden = false;
+  $('#cav').innerHTML = av(names[uid], 40); $('#cname').textContent = names[uid] || ''; $('#typ').textContent = ''; $('#ms').innerHTML = ''; statLine(); renderList();
+  const {data} = await sb.from('messages').select('*').or(`and(sender.eq.${me.id},receiver.eq.${uid}),and(sender.eq.${uid},receiver.eq.${me.id})`)
+    .order('created_at', {ascending: false}).limit(50);
+  if (chatWith !== uid) return;
+  msgs = (data || []).reverse(); renderMsgs(); markRead(uid); $('#mi').focus();
+}
+async function send() {
+  const body = $('#mi').value.trim(); if (!body || !chatWith) return; $('#mi').value = '';
+  const {data, error} = await sb.from('messages').insert({sender: me.id, receiver: chatWith, body}).select().single();
+  if (error) return toast(error.message); msgs.push(data); renderMsgs();
+}
+$('#sd').onclick = send; $('#mi').onkeydown = e => { if (e.key === 'Enter') send(); };
+$('#mi').oninput = () => { if (pres && chatWith && Date.now() - tT > 2000) { tT = Date.now();
+  pres.send({type: 'broadcast', event: 'typing', payload: {from: me.id, to: chatWith}}); } };
+
+async function subscribe() {
+  for (const c of [ch, pres]) if (c) sb.removeChannel(c); ch = pres = null; online = new Set();
+  if (!me) { isAdmin = false; S = {req: [], sent: [], ok: [], unread: {}}; $('#app').hidden = true; chatWith = null; return refreshBadge(); }
+  const pc = (ev, table, filter, fn) => [{event: ev, schema: 'public', table, filter}, fn];
+  ch = sb.channel('u-' + me.id)
+    .on('postgres_changes', ...pc('INSERT', 'messages', 'receiver=eq.' + me.id, p => { const m = p.new;
+      if (chatWith === m.sender && !$('#app').hidden) { msgs.push(m); renderMsgs(); markRead(m.sender); }
+      else { S.unread[m.sender] = (S.unread[m.sender] || 0) + 1; renderList(); refreshBadge(); toast('Tin nhắn mới từ ' + (names[m.sender] || 'bạn bè')); } }))
+    .on('postgres_changes', ...pc('UPDATE', 'messages', 'sender=eq.' + me.id, p => {
+      const m = msgs.find(x => x.id === p.new.id); if (m) { m.read_at = p.new.read_at; renderMsgs(); } }))
+    .on('postgres_changes', ...pc('INSERT', 'friendships', 'b=eq.' + me.id, () => { toast('Bạn có lời mời kết bạn mới'); loadFriends(); }))
+    .on('postgres_changes', ...pc('UPDATE', 'friendships', 'a=eq.' + me.id, () => { toast('Lời mời kết bạn của bạn đã được chấp nhận'); loadFriends(); }))
+    .subscribe();
+  pres = sb.channel('online', {config: {presence: {key: me.id}}})
+    .on('presence', {event: 'sync'}, () => { online = new Set(Object.keys(pres.presenceState())); renderList(); statLine(); })
+    .on('broadcast', {event: 'typing'}, ({payload}) => { if (payload.to === me.id && payload.from === chatWith) {
+      $('#typ').textContent = (names[chatWith] || '') + ' đang nhập…'; clearTimeout(tHide); tHide = setTimeout(() => $('#typ').textContent = '', 3000); } })
+    .subscribe(st => { if (st === 'SUBSCRIBED') pres.track({at: Date.now()}); });
+  loadFriends();
+  const {data: pr} = await sb.from('profiles').select('username,display_name,bio,avatar_url,is_admin').eq('id', me.id).maybeSingle();
+  myP = pr; isAdmin = !!pr?.is_admin; reg(pr); navUser();
+}
+
+// ---------- Khởi động và liên kết trực tiếp: #p=<id> (bài viết), #u=<tên> (hồ sơ) ----------
+function route() {
+  const h = location.hash, id = (h.match(/^#p=([0-9a-f-]{36})$/) || [])[1], u = (h.match(/^#u=([a-z0-9_]{3,24})$/) || [])[1];
+  if (id) view(id); else if (u) profileUI(u);
+}
+addEventListener('hashchange', route);
+load(true); widgets(); route();
+</script>
+</body>
+</html>
